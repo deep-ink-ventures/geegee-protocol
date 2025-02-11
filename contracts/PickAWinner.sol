@@ -66,6 +66,11 @@ contract PickAWinner is Ownable {
     error SaleIsOngoing();
 
     /**
+     * @notice This error is raised when the owner attempts to buy a slot.
+     */
+    error InvalidOwnerBuyIn();
+
+    /**
      * @notice This error is raised when number of slots is less than 2.
      */
     error TooFewSlots();
@@ -89,6 +94,11 @@ contract PickAWinner is Ownable {
      * @notice This error is raised when the winning indices do not match the provenance hash.
      */
     error InvalidProvenanceHash();
+
+    /**
+     * @notice This error is raised when the winner has already been chosen.
+     */
+    error WinnerAlreadyPicked();
 
     /**
      * @notice This error is raised when the winning index is out of bounds.
@@ -166,6 +176,9 @@ contract PickAWinner is Ownable {
      * @return uint256 The index of the slot purchased.
      */
     function buyIn() external payable whenUnprivilegedBuyInIsPossible returns (uint256) {
+        if (msg.sender == owner()) {
+            revert InvalidOwnerBuyIn();
+        }
         if (msg.value < slotPriceInNative) {
             revert InsufficientPayment();
         }
@@ -188,6 +201,10 @@ contract PickAWinner is Ownable {
      * @param salt The salt used to generate the provenance hash.
      */
     function pickWinner(uint256[] calldata indices, bytes calldata salt) external onlyOwner whenAllSlotsTaken {
+        if (winner != address(0)) {
+            revert WinnerAlreadyPicked();
+        }
+
         if (indices.length != numSlots) {
             revert ArrayLengthMismatch();
         }

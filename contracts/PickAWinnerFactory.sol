@@ -19,6 +19,13 @@ contract PickAWinnerFactory is Ownable {
     constructor() Ownable(msg.sender) {}
 
     /**
+     * @notice Returns the number of PickAWinner contracts that have been created.
+     */
+    function numPaws() external view returns (uint256) {
+        return paws.length;
+    }
+
+    /**
      * @notice Creates a new PickAWinner contract.
      * @dev This function is only callable by the owner. Ownership of the new PickAWinner contract is transferred to the owner.
      * @param numSlots The number of slots available for purchase.

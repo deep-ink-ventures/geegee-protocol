@@ -1,9 +1,8 @@
-// hardhat.config.js
-
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
+import "solidity-coverage";
 
 type Config = HardhatUserConfig & {
     etherscan: any
