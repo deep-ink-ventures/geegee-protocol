@@ -2,11 +2,12 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { PickAWinner as PickAWinnerContract, PickAWinner__factory } from "../typechain";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { assert } from "console";
 
 const createProvenanceHash = (indices: number[], salt: string): string => {
   const packed = ethers.solidityPacked(["bytes", "uint256[]"], [salt, indices]);
   return ethers.keccak256(packed);
-}
+};
 
 describe("PickAWinner", function () {
   let paw: PickAWinnerContract;
@@ -21,6 +22,7 @@ describe("PickAWinner", function () {
   // Usually, you'd generate these in a more structured manner.
   const indices = [2, 1, 8, 5, 3, 7, 0, 4, 6, 9];
   const salt = "0xdeadbeef";
+  assert(indices.length === numSlots, "Indices length should match numSlots");
 
   // The provenance hash is computed as keccak256(salt, indices)
   const provenanceHash = createProvenanceHash(indices, salt);
@@ -50,6 +52,13 @@ describe("PickAWinner", function () {
     it("has no slots purchased at deployment", async function () {
       // Since no slots have been bought yet
       await expect(paw.slots(0)).to.be.reverted; // no slot at index 0
+    });
+
+    it("generates the expected provenance hash", async function () {
+      const salt = "0xa7571219"
+      const indices = [3, 2, 1, 0];
+      const expectedProvenanceHash = "0x74431f12a115a6bdf6762a0a2a382f2fafe67665e085a49dd4d32af49c76853b";
+      expect(createProvenanceHash(indices, salt)).to.equal(expectedProvenanceHash);
     });
   });
 
@@ -204,7 +213,7 @@ describe("PickAWinner", function () {
 
       await expect(
         pawZeroPrice.connect(someone).buyIn({ value: 0n })
-      ).to.be.revertedWithCustomError(pawZeroPrice, "InsufficientPayment");
+      ).to.be.revertedWithCustomError(pawZeroPrice, "UnprivilegedBuyInIsNotPossible");
     });
   });
 });

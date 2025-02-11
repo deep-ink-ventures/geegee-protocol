@@ -120,7 +120,7 @@ contract PickAWinner is Ownable {
      */
     modifier whenUnprivilegedBuyInIsPossible() {
         if (slotPriceInNative == 0) {
-            revert InsufficientPayment();
+            revert UnprivilegedBuyInIsNotPossible();
         }
         _;
     }

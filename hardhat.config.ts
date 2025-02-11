@@ -30,8 +30,13 @@ const config: Config = {
     },
     moonbaseAlpha: {
       url: "https://rpc.api.moonbase.moonbeam.network",
-      accounts: [process.env.PRIVATE_KEY!],
+      accounts: [process.env.STAGING_PRIVATE_KEY!],
       chainId: 1287,
+    },
+    celoAlfajores: {
+      url: "https://alfajores-forno.celo-testnet.org",
+      accounts: [process.env.STAGING_PRIVATE_KEY!],
+      chainId: 44787,
     },
     localhost: {
       url: "http://127.0.0.1:8545/",
