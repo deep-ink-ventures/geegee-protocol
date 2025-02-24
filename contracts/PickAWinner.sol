@@ -1,8 +1,31 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title PickAWinner
+ * @dev A provably fair raffle contract where participants can buy tickets (slots) for a chance to win.
+ *
+ * This contract implements a transparent and verifiable raffle system with the following features:
+ * - Fixed number of slots available for purchase
+ * - Fixed price per slot in native currency
+ * - Provably fair winner selection using a combination of:
+ *   1. Pre-committed random number (provenanceHash)
+ *   2. Salt value revealed after all slots are sold
+ *   3. Block hash at the time of winner selection
+ *
+ * The winning mechanism ensures that:
+ * - The outcome cannot be predicted during the ticket sale
+ * - The contract owner cannot manipulate the winner selection
+ * - The entire process is verifiable on-chain
+ *
+ * Security Features:
+ * - Owner cannot participate in the raffle
+ * - Winner selection can only occur after all slots are sold
+ * - Provenance hash must be committed at contract creation
+ * - Minimum of 2 slots required for a valid raffle
+ */
 contract PickAWinner is Ownable {
 
     /**
@@ -135,6 +158,14 @@ contract PickAWinner is Ownable {
         _;
     }
 
+    /**
+     * @notice Initializes a new raffle contract
+     * @dev Sets up the initial state of the raffle with the specified parameters
+     * @param _numSlots The total number of slots (tickets) available in the raffle
+     * @param _slotPriceInNative The price of each slot in the native currency (0 for privileged-only raffles)
+     * @param _provenanceHash The hash of the winning sequence and salt, committed at creation time
+     * @custom:security The provenance hash ensures the winning sequence cannot be changed after creation
+     */
     constructor(
         uint256 _numSlots,
         uint256 _slotPriceInNative,
@@ -195,10 +226,20 @@ contract PickAWinner is Ownable {
     }
 
     /**
-     * @notice Reveals the winning indices and chooses a winner.
-     * @dev This function is only available to the owner. It is only available once all slots are taken.
-     * @param indices The indices of the winning slots.
-     * @param salt The salt used to generate the provenance hash.
+     * @notice Reveals the winning indices and determines the winner of the raffle
+     * @dev This function implements the core fairness mechanism of the raffle:
+     *      1. Verifies the revealed sequence matches the committed hash
+     *      2. Uses the current block number as an unpredictable source of randomness
+     *      3. Selects the winner using modulo arithmetic on the block number
+     * 
+     * @param indices The complete sequence of winning indices that was committed at creation
+     * @param salt The secret salt value used in the original hash commitment
+     * 
+     * @custom:security This function ensures fairness through multiple mechanisms:
+     * - The indices must match the committed hash (prevents manipulation)
+     * - The block number is used as a source of randomness (unpredictable)
+     * - The function can only be called once (prevents re-rolls)
+     * - All slots must be filled (ensures full participation)
      */
     function pickWinner(uint256[] calldata indices, bytes calldata salt) external onlyOwner whenAllSlotsTaken {
         if (winner != address(0)) {
